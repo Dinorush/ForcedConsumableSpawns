@@ -48,7 +48,6 @@ namespace ForcedConsumableSpawns.Patches
             {
                 for (int i = 0; i < forceSpawn.Count; i++)
                 {
-                    DinoLogger.Log($"Adding ID {forceSpawn.ItemID} to zone {zone.NavInfo.ToString()}");
                     ResourceContainerSpawnData spawnData = new()
                     {
                         m_type = eResourceContainerSpawnType.Consumable,
