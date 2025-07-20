@@ -26,7 +26,66 @@ namespace ForcedConsumableSpawns.Patches
         {
             if (__instance.m_func != ExpeditionFunction.PowerGenerator) return;
 
-            var distID = __instance.m_zone.m_settings.m_zoneData.ConsumableDistributionInZone;
+            DoForceConsumableSpawns(__instance.m_zone);
+            DoForceBigPickupSpawns(__instance.m_zone);
+        }
+
+        // Largely copy/pasted logic from LG_Distribute_PickupItemsPerZone.Build() (for consumables)
+        private static void DoForceBigPickupSpawns(LG_Zone zone)
+        {
+            var distID = zone.m_settings.m_zoneData.BigPickupDistributionInZone;
+            if (distID == 0) return;
+
+            var dist = BigPickupDistributionDataBlock.GetBlock(distID);
+            if (dist == null)
+            {
+                DinoLogger.Error($"Attempted to get BigPickupDistribution {distID}, but it doesn't exist!");
+                return;
+            }
+
+            if (!dist.TryGetForceList(out var forceList)) return;
+
+            foreach (var forceSpawn in forceList)
+            {
+                for (int i = 0; i < forceSpawn.Count; i++)
+                {
+                    uint itemID = forceSpawn.ItemID;
+
+                    LG_DistributePickUpItem? distItem = null;
+                    if (LG_DistributionJobUtils.TryGetExistingZoneFunctionDistribution(zone, ExpeditionFunction.BigPickupItem, Builder.SessionSeedRandom.Value("Dist_Pickup_TryGetZoneFunctionDistribution_Pickupitems"), forceSpawn.PlacementWeights ?? DefaultWeights, out var foundDist, out var _))
+                    {
+                        var lG_DistributePickUpItem = foundDist.TryCast<LG_DistributePickUpItem>();
+                        if (lG_DistributePickUpItem != null)
+                        {
+                            distItem = lG_DistributePickUpItem;
+                        }
+                        else
+                        {
+                            DinoLogger.Error("LG_Distribute_PickupItems could not cast distItem as LG_DistributePickupItem!");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        AIG_CourseNode randomNodeFromZoneForFunction2 = LG_DistributionJobUtils.GetRandomNodeFromZoneForFunction(zone, ExpeditionFunction.BigPickupItem, Builder.BuildSeedRandom.Value("Dist_Pickup_GetRandomNodeFromZoneForFunction"));
+                        distItem = new LG_DistributePickUpItem(ExpeditionFunction.BigPickupItem, ePickupItemType.BigGenericPickup, randomNodeFromZoneForFunction2, Builder.BuildSeedRandom.Range(0, int.MaxValue, "Dist_Pickup_GetRandomNodeFromZoneForFunction"), itemID);
+                        randomNodeFromZoneForFunction2.m_zone.DistributionData.PickupItems.Enqueue(distItem);
+                        DinoLogger.Error(string.Concat("LG_Distribute_PickupItems Had to create a new LG_DistributePickUpItem for function ", ExpeditionFunction.BigPickupItem, " in zone ", zone.NavInfo.GetFormattedText(LG_NavInfoFormat.Full_And_Number_No_Formatting), " dim:", zone.DimensionIndex, "! m_isWardenObjectiveGatherItem: ", false));
+                    }
+                    distItem.m_type = ePickupItemType.BigGenericPickup;
+                    distItem.m_genericItemId = itemID;
+                    distItem.m_consumableData = null;
+                    distItem.m_bigPickupData = null;
+                    distItem.m_isWardenObjective = false;
+                    distItem.m_artifactCategory = 0;
+                }
+            }
+        }
+
+        // Largely copy/pasted logic from LG_Distribute_PickupItemsPerZone.Build() (for consumables)
+        private static void DoForceConsumableSpawns(LG_Zone zone)
+        {
+            var distID = zone.m_settings.m_zoneData.ConsumableDistributionInZone;
             if (distID == 0) return;
 
             var dist = ConsumableDistributionDataBlock.GetBlock(distID);
@@ -36,14 +95,8 @@ namespace ForcedConsumableSpawns.Patches
                 return;
             }
 
-            if (!dist.TryGetCDForceList(out var forceList)) return;
+            if (!dist.TryGetForceList(out var forceList)) return;
 
-            DoForceSpawns(__instance.m_zone, forceList);
-        }
-
-        // Largely copy/pasted logic from LG_Distribute_PickupItemsPerZone.Build() (for consumables)
-        private static void DoForceSpawns(LG_Zone zone, List<ConsumableForceData> forceList)
-        {
             foreach (var forceSpawn in forceList)
             {
                 for (int i = 0; i < forceSpawn.Count; i++)

@@ -7,7 +7,7 @@ using InjectLib.JsonNETInjection;
 
 namespace ForcedConsumableSpawns
 {
-    [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.0.0")]
+    [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.1.0")]
     [BepInDependency("GTFO.InjectLib", BepInDependency.DependencyFlags.HardDependency)]
     internal sealed class EntryPoint : BasePlugin
     {
@@ -15,10 +15,11 @@ namespace ForcedConsumableSpawns
 
         public override void Load()
         {
-            Log.LogMessage("Loading " + MODNAME);
             new Harmony(MODNAME).PatchAll();
+            BPDDataFields.Init();
             CDDataFields.Init();
-            JsonInjector.AddHandler(new ForceDataHandler());
+            JsonInjector.AddHandler(new ConsumableForceDataHandler());
+            JsonInjector.AddHandler(new BigPickupForceDataHandler());
             Log.LogMessage("Loaded " + MODNAME);
         }
     }

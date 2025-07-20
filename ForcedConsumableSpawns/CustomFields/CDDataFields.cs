@@ -9,17 +9,17 @@ namespace ForcedConsumableSpawns.CustomFields
     {
         internal static void Init()
         {
-            FieldInjector<ConsumableDistributionDataBlock>.DefineManagedField<List<ConsumableForceData>>("m_CDForceList");
+            FieldInjector<ConsumableDistributionDataBlock>.DefineManagedField<List<PickupForceData>>("m_ForceList");
         }
 
-        public static void SetCDForceList(this ConsumableDistributionDataBlock target, List<ConsumableForceData> data)
+        public static void SetForceList(this ConsumableDistributionDataBlock target, List<PickupForceData> data)
         {
-            FieldInjector<ConsumableDistributionDataBlock>.TrySetManagedField(target, "m_CDForceList", data);
+            FieldInjector<ConsumableDistributionDataBlock>.TrySetManagedField(target, "m_ForceList", data);
         }
 
-        public static bool TryGetCDForceList(this ConsumableDistributionDataBlock target, [MaybeNullWhen(false)] out List<ConsumableForceData> data)
+        public static bool TryGetForceList(this ConsumableDistributionDataBlock target, [MaybeNullWhen(false)] out List<PickupForceData> data)
         {
-            return FieldInjector<ConsumableDistributionDataBlock>.TryGetManagedField(target, "m_CDForceList", out data);
+            return FieldInjector<ConsumableDistributionDataBlock>.TryGetManagedField(target, "m_ForceList", out data);
         }
     }
 }
